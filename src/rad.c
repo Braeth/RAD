@@ -40,6 +40,44 @@ int * count_digit( int level ) {
     return pad;
 }
 
+int * long_row( int last_line, char **lines, int size ) {
+    size_t len;
+    char *curr = malloc( 1024 * sizeof( char ) );
+    if ( !curr ) { ErrorExit( mem_err_alloc_message ); }
+    curr[ 0 ] = '\0';
+
+    for ( int i = 0; i <= size; i++ ) {
+        len = strlen( curr );
+        if ( len == 0 ){
+            strcpy( curr, lines[ i ] );
+        }
+
+        if( len < strlen( lines[ i ] + 1 ) ) {
+            strcpy( curr, lines[ i ] );
+        }
+
+    }
+
+    size_t total = strlen( curr );
+    free( curr );
+    return ( total + last_line + 2 );
+}
+
+void draw_lines ( int last_line, char **segment, int row_height ) {
+    int len = long_row( last_line, segment, ( row_height ) );
+    while ( len > 0 ) {
+        printf("─");
+        len--;
+    }
+    puts("");
+}
+
+void draw_lock( int len ) {
+    for( int i = 0; i < len; i++) {
+        printf("%s", INDENT);
+    }
+}
+
 char * indent( int pad ) {
 
     char *spaces = malloc( pad + 1 );
@@ -62,6 +100,12 @@ int count_space( const char *src ) {
         total++; i++;
     }
     return total;
+}
+
+void remove_newline( char * line ) {
+    size_t len = strlen( line );
+    if( len > 0 && line[ len - 1 ] == '\n' )
+        line[ len - 1 ] = '\0';
 }
 
 char * truncate_fn( char *fn, bool rtl, int len) {
@@ -131,10 +175,9 @@ scan_line:
     char **upper_bound = malloc( line_height * sizeof ( char *) );
     char **lower_bound = malloc( line_height * sizeof ( char * ) );
     char *err_line = malloc( MAX_CHUNK_FILE * sizeof ( char ) );
+    char **segment = malloc( ( line_height + line_height + 1 ) * sizeof ( char * ) );
 
-    if ( !err_line ) {
-        ErrorExit( mem_err_alloc_message );
-    }
+    if ( !err_line || !segment ) { ErrorExit( mem_err_alloc_message ); }
 
     err_line[ 0 ] = '\0';
 
@@ -191,20 +234,37 @@ scan_line:
 
     puts("");
 
-    if ( strlen ( fn ) >= 10 ) {
-        fprintf(stderr, "Error from <%s...%s>: %s\n",truncate_fn( fn, false, 7), truncate_fn( fn, true, 10), parser->problem);
+    int row_height = line_height + line_height;
+    for (int i  = 0; i <= row_height; i++) {
+        if( i <= 1 ) {
+            segment[ i ] = strdup( upper_bound[ i ] );
+            continue;
+        }
+        if ( i == 4) {
+            segment[ i ] = strdup( err_line );
+            break;
+        }
+        segment[ i ] = strdup( lower_bound[ i - line_height ] );
+    }
+
+    if ( strlen ( fn ) >= 15 ) {
+        fprintf(stderr, "Error from <%s...%s>: %s\n",truncate_fn( fn, false, 10), truncate_fn( fn, true, 15), parser->problem);
     } else {
         fprintf(stderr, "Error from <%s>: %s\n", truncate_fn( fn, true, strlen ( fn ) ), parser->problem);
     }
     fprintf(stderr, "Line: %d at column: %lu\n", parser->problem_mark.line, parser->problem_mark.column + 1);
-    if ( non_args_count == 1 ) { puts(""); }
+
     if(!has_root) {
         printf("%d| %s", ( parser->problem_mark.line ), err_line);
     } else {
-        if (non_args_count > 1 ) { puts("─────────────────────────────────────────────────"); }
+
+        draw_lines( last_line, segment, row_height );
+        int total_indentation = long_row( last_line, segment, row_height );
+
         int j = 0;
         for( int i = line_height; i >= 1; i--) {
             do {
+                remove_newline( upper_bound[j] );
                 int digit = count_digit( parser->problem_mark.line - i );
                 if ( last_line == digit ) {
                     printf("%d| %s", (parser->problem_mark.line - i), upper_bound[j]);
@@ -212,14 +272,16 @@ scan_line:
                     printf("%s%d| %s", indent( last_line - ( digit + 1 ) ), (parser->problem_mark.line - i), upper_bound[j]);
                 } else {
                     printf("%s%d| %s", indent( last_line - digit ), (parser->problem_mark.line - i), upper_bound[j]);
-
                 }
+                draw_lock( total_indentation - strlen( upper_bound[j] ) - last_line - 2 );
+                printf("|\n");
                 break;
             } while ( j <= i );
             j++;
         }
 
         int problem_mark = count_digit( parser->problem_mark.line );
+        remove_newline( err_line );
         if ( last_line == problem_mark ) {
             printf("%d| %s", ( parser->problem_mark.line ), err_line);
         }  else if ( last_line == 2 && problem_mark == 0 ) {
@@ -227,6 +289,8 @@ scan_line:
         } else {
             printf("%s%d| %s", indent( last_line - problem_mark ), (parser->problem_mark.line), err_line);
         }
+        draw_lock( total_indentation - strlen( err_line ) - last_line - 2 );
+        printf("|\n");
 
         int space = count_space( err_line );
         if ( last_line == 0 ) { space += 1; }
@@ -234,12 +298,12 @@ scan_line:
         for (int i = 1; i < ( strlen( err_line ) - space ); i++) {
             printf("~");
         }
-
-        puts("");
+        printf("%s|\n", indent ( total_indentation - strlen( err_line ) - last_line -1 ));
 
         j = 0;
         for( int i = 1; i <= line_height; i++) {
             do {
+                remove_newline( lower_bound[j] );
                 int digit = count_digit( parser->problem_mark.line + i );
                 if ( last_line == digit ) {
                     printf("%d| %s", (parser->problem_mark.line + i), lower_bound[j]);
@@ -248,6 +312,8 @@ scan_line:
                 } else {
                     printf("%s%d| %s", indent( last_line - digit ), (parser->problem_mark.line + i), lower_bound[j]);
                 }
+                draw_lock( total_indentation - strlen( lower_bound[j] ) - last_line - 2 );
+                printf("|\n");
                 break;
             } while ( j <= i );
             j++;
@@ -255,14 +321,13 @@ scan_line:
 
     }
 
-    if (non_args_count > 1 ) { puts("─────────────────────────────────────────────────"); }
-
-    puts("");
+    draw_lines( last_line, segment, row_height );
 
     yaml_parser_delete(parser);
 
     memory_alloc_cleanup( line_height, upper_bound );
     memory_alloc_cleanup( line_height, lower_bound);
+    memory_alloc_cleanup( row_height, segment );
     free( err_line );
     fclose( file );
 
@@ -324,8 +389,9 @@ main( int argc, char *argv[ ] ) {
 
     }
 
-    puts("");
+
     if (ctr > 0) {
+        puts("");
         printf("Error: Found %d total invalid %s. Check the path and make sure it is a valid yaml file\n", ctr, ((ctr > 1) ? "files" : "file"));
         for ( int i = 0; i < ctr; i++ ) {
             if ( strlen ( invalid_files[ i ] ) >= 10 ) {
