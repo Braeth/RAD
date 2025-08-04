@@ -86,7 +86,7 @@ int is_readable( FILE *file ) {
     while ( (chunk = fgetc( file )) != EOF && ctr < 1024 ) {
         if( !(isspace( chunk ) || isprint( chunk ) ) ) {
             bin++;
-            if ( bin > 20 ) {
+            if ( bin > 10 ) {
                 rewind( file );
                 return 0;
             }
