@@ -1,4 +1,5 @@
 #include "../includes/cli.h"
+#include "../includes/ansi.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -248,11 +249,11 @@ scan_line:
     }
 
     if ( strlen ( fn ) >= 15 ) {
-        fprintf(stderr, "Error from <%s...%s>: %s\n",truncate_fn( fn, false, 10), truncate_fn( fn, true, 15), parser->problem);
+        fprintf(stderr, COLOR_RED "Error from <%s...%s>: %s\n", truncate_fn( fn, false, 10), truncate_fn( fn, true, 15), parser->problem);
     } else {
-        fprintf(stderr, "Error from <%s>: %s\n", truncate_fn( fn, true, strlen ( fn ) ), parser->problem);
+        fprintf(stderr, COLOR_RED "Error from <%s>: %s\n", truncate_fn( fn, true, strlen ( fn ) ), parser->problem);
     }
-    fprintf(stderr, "Line: %d at column: %lu\n", parser->problem_mark.line, parser->problem_mark.column + 1);
+    fprintf(stderr, "Line: %d at column: %lu\n" COLOR_RESET , parser->problem_mark.line, parser->problem_mark.column + 1);
 
     if(!has_root) {
         printf("%d| %s", ( parser->problem_mark.line ), err_line);
@@ -283,22 +284,22 @@ scan_line:
         int problem_mark = count_digit( parser->problem_mark.line );
         remove_newline( err_line );
         if ( last_line == problem_mark ) {
-            printf("%d| %s", ( parser->problem_mark.line ), err_line);
+            printf( COLOR_RED "%d| %s" , ( parser->problem_mark.line ), err_line);
         }  else if ( last_line == 2 && problem_mark == 0 ) {
-            printf("%s%d| %s", indent( last_line - ( problem_mark + 1 ) ), (parser->problem_mark.line), err_line);
+            printf( COLOR_RED "%s%d| %s" , indent( last_line - ( problem_mark + 1 ) ), (parser->problem_mark.line), err_line);
         } else {
-            printf("%s%d| %s", indent( last_line - problem_mark ), (parser->problem_mark.line), err_line);
+            printf( COLOR_RED "%s%d| %s", indent( last_line - problem_mark ), (parser->problem_mark.line), err_line);
         }
         draw_lock( total_indentation - strlen( err_line ) - last_line - 2 );
-        printf("|\n");
+        printf("|\n" COLOR_RESET );
 
         int space = count_space( err_line );
         if ( last_line == 0 ) { space += 1; }
         printf("%s", indent( space + last_line + 2 ) );
         for (int i = 1; i < ( strlen( err_line ) - space ); i++) {
-            printf("~");
+            printf( COLOR_RED "~");
         }
-        printf("%s|\n", indent ( total_indentation - strlen( err_line ) - last_line -1 ));
+        printf("%s|\n" COLOR_RESET , indent ( total_indentation - strlen( err_line ) - last_line -1 ));
 
         j = 0;
         for( int i = 1; i <= line_height; i++) {
@@ -392,7 +393,8 @@ main( int argc, char *argv[ ] ) {
 
     if (ctr > 0) {
         puts("");
-        printf("Error: Found %d total invalid %s. Check the path and make sure it is a valid yaml file\n", ctr, ((ctr > 1) ? "files" : "file"));
+        printf( COLOR_RED "Error: Found %d total invalid %s. Check the path and make sure it is a valid yaml file" COLOR_RESET , ctr, ((ctr > 1) ? "files" : "file"));
+        printf("\n");
         for ( int i = 0; i < ctr; i++ ) {
             if ( strlen ( invalid_files[ i ] ) >= 10 ) {
                 fprintf(stderr, ">> %s...%s\n",truncate_fn( invalid_files[ i ], false, 7), truncate_fn( invalid_files[ i ], true, 10));
