@@ -256,7 +256,7 @@ scan_line:
     fprintf(stderr, "Line: %d at column: %lu\n" COLOR_RESET , parser->problem_mark.line, parser->problem_mark.column + 1);
 
     if(!has_root) {
-        printf("%d| %s", ( parser->problem_mark.line ), err_line);
+        printf("\n%d| %s", ( parser->problem_mark.line ), err_line);
     } else {
 
         draw_lines( last_line, segment, row_height );
