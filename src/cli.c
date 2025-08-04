@@ -1,4 +1,5 @@
 #include "../includes/cli.h"
+#include "../includes/ansi.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -12,14 +13,14 @@
 
 
 void print_banner() {
-    printf("\n"
+    printf(COLOR_CYAN "\n"
         "  ██████╗  █████╗ ██████╗  \n"
         "  ██╔══██╗██╔══██╗██╔══██╗ \n"
         "  ██████╔╝███████║██║  ██║ \n"
         "  ██╔══██╗██╔══██║██║  ██║ \n"
         "  ██║  ██║██║  ██║██████╔╝ \n"
         "  ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  \n"
-        "                           \n");
+        "                           \n" COLOR_RESET);
         printf("  >>>   %s   <<<\n", DESC);
         printf( "%s\nVer: %s\n", CREATOR, VERSION);
 }
@@ -66,7 +67,8 @@ void parse_arguments(int argc, char **argv, argument_p *options) {
             break;
         default:
             printf("\nUsage: %s YAML_FILE | %s [OPTIONS] YAML_FILE [YAML_FILE...]\n\n", PROGRAM, PROGRAM);
-            fprintf(stderr, "%s: error: no such option: %s\n", PROGRAM, argv[1]);
+            fprintf(stderr, COLOR_RED "%s: error: no such option: %s" COLOR_RESET , PROGRAM, argv[1]);
+            printf("\n\n");
             exit(1);
         }
 
@@ -76,13 +78,15 @@ void parse_arguments(int argc, char **argv, argument_p *options) {
 
     if( options->files_arg_count == 0 ) {
         printf("\nUsage: %s YAML_FILE | %s [OPTIONS] YAML_FILE [YAML_FILE...]\n", PROGRAM, PROGRAM);
-        fprintf(stderr, "\n%s: error: no yaml file specified\n", PROGRAM);
+        fprintf(stderr, COLOR_RED "\n%s: error: no yaml file specified" COLOR_RESET, PROGRAM);
+        printf("\n\n");
         exit(1);
     } else options->files = &argv[optind];
 
     if( options->files_arg_count > 1 && !options->recursive ) {
         printf("\nUsage: %s YAML_FILE | %s [OPTIONS] YAML_FILE [YAML_FILE...]\n\n", PROGRAM, PROGRAM);
-        fprintf(stderr, "%s: error: Ambiguous option\n", PROGRAM);
+        fprintf(stderr, COLOR_RED "%s: error: Ambiguous option" COLOR_RESET , PROGRAM);
+        printf("\n\n");
         exit(1);
     }
 
