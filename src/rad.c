@@ -73,6 +73,14 @@ void draw_lines ( int last_line, char **segment, int row_height ) {
     puts("");
 }
 
+void draw_lines_single ( int len ) {
+    while ( len > 0 ) {
+        printf("─");
+        len--;
+    }
+    puts("");
+}
+
 void draw_lock( int len ) {
     for( int i = 0; i < len; i++) {
         printf("%s", INDENT);
@@ -92,6 +100,17 @@ char * indent( int pad ) {
 
 }
 
+void draw_table( int width, int rows, char **valid_files ) {
+
+    for (int i = 0; i < rows; i++ ) {
+        draw_lines_single (  width + 15 );
+        printf("| ..%s%s|", valid_files[ i ], indent( width - strlen( valid_files[ i ] ) ));
+        printf(COLOR_GREEN "  VALID  ");
+        printf(COLOR_RESET "|\n");
+    }
+    draw_lines_single (  width + 15 );
+    printf("\n");
+}
 
 int count_space( const char *src ) {
 
@@ -165,9 +184,8 @@ int parse( FILE *file, yaml_parser_t *parser, int non_args_count, char *fn ) {
     } while ( event_type != YAML_STREAM_END_EVENT );
 
     yaml_parser_delete(parser);
-    puts("Success");
     fclose( file );
-    exit(0);
+    return;
 
 scan_line:
     rewind( file );
@@ -352,9 +370,10 @@ main( int argc, char *argv[ ] ) {
     parse_arguments( argc, argv, &args );
 
     char **invalid_files = malloc(args.files_arg_count * sizeof(char *));
-    int ctr = 0;
+    char **valid_files = malloc(args.files_arg_count * sizeof(char *));
+    int ctr = 0, valid_ctr = 0;
 
-    if ( invalid_files == NULL ) {
+    if ( invalid_files == NULL || valid_files == NULL ) {
         ErrorExit( mem_err_alloc_message );
     }
 
@@ -383,6 +402,14 @@ main( int argc, char *argv[ ] ) {
             parse( file, &parser, args.files_arg_count, args.files[ i ] );
             yaml_parser_delete( &parser );
 
+            if( strlen( args.files[ i ] ) > 15 ) {
+                valid_files[ valid_ctr ] = strdup( truncate_fn( args.files[ i ] , true, 15) );
+            } else {
+                valid_files[ valid_ctr ] = strdup( args.files[ i ] );
+            }
+            valid_ctr++;
+
+
         } else {
             err_files_mem( ctr, args.files[ i ], invalid_files );
             ctr++;
@@ -405,7 +432,16 @@ main( int argc, char *argv[ ] ) {
         }
     }
     puts("");
+
+    printf( COLOR_BLUE "INFO: " COLOR_RESET);
+    printf("SUCCESS! %d %s %s VALID!\n", valid_ctr, ((valid_ctr > 1) ? "files": "file"), ((valid_ctr > 1) ? "are": "is") );
+
+
+    int total_lines = long_row( 1, valid_files , valid_ctr - 1 );
+    draw_table( total_lines, valid_ctr, valid_files );
+
     memory_alloc_cleanup(ctr, invalid_files);
+    memory_alloc_cleanup(valid_ctr, valid_files);
 
     return 0;
 }
