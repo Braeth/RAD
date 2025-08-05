@@ -55,6 +55,10 @@ void yaml_dry_run( const char *event, const char *path ) {
             }
         }
 
+        if( strstr( chunk, "not found" ) != NULL || strstr( chunk, "not recognized" ) != NULL ) {
+            fprintf(stderr, COLOR_RED "%s: kubectl was not installed. Please configure your environment variable.\n" COLOR_RESET , PROGRAM);
+            break;
+        }
         printf("%s", chunk);
 
     }
