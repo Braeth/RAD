@@ -313,7 +313,7 @@ scan_line:
         printf("|\n" COLOR_RESET );
 
         int space = count_space( err_line );
-        if ( last_line == 0 ) { space += 1; }
+        if ( last_line == 0 ) { printf( INDENT ); }
         printf("%s", indent( space + last_line + 2 ) );
         for (int i = 1; i < ( strlen( err_line ) - space ); i++) {
             printf( COLOR_RED "~");
