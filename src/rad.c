@@ -1,5 +1,6 @@
 #include "../includes/cli.h"
 #include "../includes/ansi.h"
+#include "../includes/rad_parser.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -185,7 +186,7 @@ int parse( FILE *file, yaml_parser_t *parser, int non_args_count, char *fn ) {
 
     yaml_parser_delete(parser);
     fclose( file );
-    return;
+    return strlen( fn );
 
 scan_line:
     rewind( file );
@@ -399,15 +400,22 @@ main( int argc, char *argv[ ] ) {
             }
 
             yaml_parser_set_input_file( &parser, file );
-            parse( file, &parser, args.files_arg_count, args.files[ i ] );
+            int res = parse( file, &parser, args.files_arg_count, args.files[ i ] );
             yaml_parser_delete( &parser );
 
-            if( strlen( args.files[ i ] ) > 15 ) {
-                valid_files[ valid_ctr ] = strdup( truncate_fn( args.files[ i ] , true, 15) );
-            } else {
-                valid_files[ valid_ctr ] = strdup( args.files[ i ] );
+            if (res > 0) {
+                if( strlen( args.files[ i ] ) > 15 ) {
+                    valid_files[ valid_ctr ] = strdup( truncate_fn( args.files[ i ] , true, 15) );
+                } else {
+                    valid_files[ valid_ctr ] = strdup( args.files[ i ] );
+                }
+                valid_ctr++;
             }
-            valid_ctr++;
+
+            if ( res > 0 && args.dry_run ) {
+                yaml_dry_run(NULL, args.files[ i ] );
+            }
+
 
 
         } else {
@@ -433,12 +441,14 @@ main( int argc, char *argv[ ] ) {
     }
     puts("");
 
-    printf( COLOR_BLUE "INFO: " COLOR_RESET);
-    printf("SUCCESS! %d %s %s VALID!\n", valid_ctr, ((valid_ctr > 1) ? "files": "file"), ((valid_ctr > 1) ? "are": "is") );
+    if ( valid_ctr > 0 && !args.dry_run) {
+        printf( COLOR_BLUE "INFO: " COLOR_RESET);
+        printf("SUCCESS! %d %s %s VALID!\n", valid_ctr, ((valid_ctr > 1) ? "files": "file"), ((valid_ctr > 1) ? "are": "is") );
 
 
-    int total_lines = long_row( 1, valid_files , valid_ctr - 1 );
-    draw_table( total_lines, valid_ctr, valid_files );
+        int total_lines = long_row( 1, valid_files , valid_ctr - 1 );
+        draw_table( total_lines, valid_ctr, valid_files );
+    }
 
     memory_alloc_cleanup(ctr, invalid_files);
     memory_alloc_cleanup(valid_ctr, valid_files);

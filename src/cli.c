@@ -31,7 +31,8 @@ void print_help() {
            "  General Options:\n"
            "    -h, --help                 Print this help text and exit\n"
            "    -v, --version              Software version\n"
-           "    -r, --recursive            Validate multiple yaml files\n\n"
+           "    -r, --recursive            Validate multiple yaml files\n"
+           "    -d, --dry-run              Simulate kubectl --dry-run for configmaps\n\n"
            "e.g: $%s <path-to>/policy.yaml\n", PROGRAM, PROGRAM, PROGRAM);
 }
 
@@ -51,9 +52,10 @@ void parse_arguments(int argc, char **argv, argument_p *options) {
     static struct option long_options[] = {{"version", no_argument, 0, 'v'},
                                            {"help",    no_argument, 0, 'h'},
                                            {"recursive", no_argument, 0, 'r'},
+                                           {"dry-run", no_argument, 0, 'd'},
                                            {0, 0, 0, 0}};
 
-    while( (opt = getopt_long(argc, argv, "vhr", long_options, &option_index)) != -1 ) {
+    while( (opt = getopt_long(argc, argv, "vhrd", long_options, &option_index)) != -1 ) {
 
         switch( opt ) {
         case 'v':
@@ -64,6 +66,9 @@ void parse_arguments(int argc, char **argv, argument_p *options) {
             exit(0);
         case 'r':
             options->recursive=1;
+            break;
+        case 'd':
+            options->dry_run=1;
             break;
         default:
             printf("\nUsage: %s YAML_FILE | %s [OPTIONS] YAML_FILE [YAML_FILE...]\n\n", PROGRAM, PROGRAM);
@@ -86,6 +91,13 @@ void parse_arguments(int argc, char **argv, argument_p *options) {
     if( options->files_arg_count > 1 && !options->recursive ) {
         printf("\nUsage: %s YAML_FILE | %s [OPTIONS] YAML_FILE [YAML_FILE...]\n\n", PROGRAM, PROGRAM);
         fprintf(stderr, COLOR_RED "%s: error: Ambiguous option" COLOR_RESET , PROGRAM);
+        printf("\n\n");
+        exit(1);
+    }
+
+    if( options->files_arg_count > 1 && options->dry_run ) {
+        printf("\nUsage: %s YAML_FILE | %s [OPTIONS] YAML_FILE [YAML_FILE...]\n\n", PROGRAM, PROGRAM);
+        fprintf(stderr, COLOR_RED "%s: error: --dry-run should only be available for a single file." COLOR_RESET , PROGRAM);
         printf("\n\n");
         exit(1);
     }
