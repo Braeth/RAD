@@ -33,6 +33,7 @@ void print_help() {
            "    -v, --version              Software version\n"
            "    -r, --recursive            Validate multiple yaml files\n"
            "    -d, --dry-run              Simulate kubectl --dry-run for configmaps\n\n"
+           "    -c, --color                Colorized the result for kubectl --dry-run command\n\n"
            "e.g: $%s <path-to>/policy.yaml\n", PROGRAM, PROGRAM, PROGRAM);
 }
 
@@ -53,9 +54,10 @@ void parse_arguments(int argc, char **argv, argument_p *options) {
                                            {"help",    no_argument, 0, 'h'},
                                            {"recursive", no_argument, 0, 'r'},
                                            {"dry-run", no_argument, 0, 'd'},
+                                           {"color", no_argument, 0, 'c'},
                                            {0, 0, 0, 0}};
 
-    while( (opt = getopt_long(argc, argv, "vhrd", long_options, &option_index)) != -1 ) {
+    while( (opt = getopt_long(argc, argv, "vhrdc", long_options, &option_index)) != -1 ) {
 
         switch( opt ) {
         case 'v':
@@ -69,6 +71,9 @@ void parse_arguments(int argc, char **argv, argument_p *options) {
             break;
         case 'd':
             options->dry_run=1;
+            break;
+        case 'c':
+            options->colorized=1;
             break;
         default:
             printf("\nUsage: %s YAML_FILE | %s [OPTIONS] YAML_FILE [YAML_FILE...]\n\n", PROGRAM, PROGRAM);

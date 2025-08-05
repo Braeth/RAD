@@ -5,6 +5,7 @@ typedef struct {
     int recursive;
     int files_arg_count;
     int dry_run;
+    int colorized;
     char **files;
 } argument_p;
 

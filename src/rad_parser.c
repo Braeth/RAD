@@ -46,7 +46,7 @@ void yaml_dry_run( const char *event, const char *path ) {
     puts("");
     while( fgets( chunk , sizeof( chunk ), file ) )  {
 
-        if ( regX_silent_fail != 1 ) {
+        if ( regX_silent_fail != 1 && event == 1 ) {
             if( !regexec( &regX, chunk, (size_t) BUFFER_SIZE , match, 0 ) ) {
                 int len =  match[0].rm_eo - match[0].rm_so + 1;
                 line = malloc( sizeof( chunk )  );

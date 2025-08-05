@@ -413,7 +413,7 @@ main( int argc, char *argv[ ] ) {
             }
 
             if ( res > 0 && args.dry_run ) {
-                yaml_dry_run(NULL, args.files[ i ] );
+                yaml_dry_run( args.colorized , args.files[ i ] );
             }
 
 
