@@ -20,6 +20,7 @@ set(RAD_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/rad.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/cli.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/rad_parser.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ansi.c
 )
 
 add_executable(rad ${RAD_SOURCE})

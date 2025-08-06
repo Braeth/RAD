@@ -366,7 +366,7 @@ void err_files_mem( int ctr, char *file, char **invalid_files ) {
 
 int
 main( int argc, char *argv[ ] ) {
-
+    enable_virtual_processing();
     argument_p args;
     parse_arguments( argc, argv, &args );
 

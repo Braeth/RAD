@@ -7,4 +7,6 @@
 #define COLOR_BLUE "\033[34m"
 #define COLOR_GREEN "\033[32m"
 
+int enable_virtual_processing();
+
 #endif
