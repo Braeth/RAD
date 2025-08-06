@@ -1,14 +1,15 @@
 #include "../includes/cli.h"
 #include "../includes/ansi.h"
+#include "../includes/rad_parser.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <regex.h>
 #include <string.h>
 
 #define BUFFER_SIZE 256
 #define CHUNK_SIZE 1024
 
-void parse_keys( char *chunk, int start, int end ) {
+
+void move_keys( char *chunk, int start, int end ) {
 
     memmove(chunk + end + strlen( (int) COLOR_RESET ), chunk + end, strlen( chunk + end ) + 1);
     memcpy(chunk + end , COLOR_RESET, strlen( (int) COLOR_RESET ));
@@ -18,16 +19,28 @@ void parse_keys( char *chunk, int start, int end ) {
 
 }
 
+void parse_keys( char *chunk , rad_parse *parse ) {
+    memset( parse, 0, sizeof( rad_parse ));
+    while( chunk[ parse->start ] == ' ' || chunk[ parse->start ] == '\t' || chunk[ parse->start ] == '-' ) {
+        parse->start++;
+    }
+
+    char *splitter  = strchr( chunk + parse->start, ':' );
+    int len;
+    if( splitter ) {
+        len = splitter - (chunk + parse->start);
+        strncpy( parse->chunk, chunk + parse->start, len);
+        parse->chunk[ len ] = '\0';
+        parse->end = parse->start + len;
+    }
+
+}
+
 void yaml_dry_run( const char *event, const char *path ) {
+    rad_parse parse;
     FILE *file;
     char buffer[ BUFFER_SIZE ];
     char chunk[ CHUNK_SIZE ];
-    char *pattern = "[A-Za-z0-9_.-]*:";
-    char *line;
-
-    regex_t regX;
-    regmatch_t match[ BUFFER_SIZE ];
-    int regX_silent_fail = 0;
 
     snprintf( buffer, sizeof( buffer ), "kubectl create cm policy --from-file=%s --dry-run=client -o yaml 2>&1", path );
 
@@ -38,21 +51,12 @@ void yaml_dry_run( const char *event, const char *path ) {
         return;
     }
 
-    if( regcomp( &regX, pattern, REG_ICASE | REG_EXTENDED ) != 0 ) {
-        regX_silent_fail = 1;
-        regfree( &regX );
-    }
-
     puts("");
     while( fgets( chunk , sizeof( chunk ), file ) )  {
 
-        if ( regX_silent_fail != 1 && event == 1 ) {
-            if( !regexec( &regX, chunk, (size_t) BUFFER_SIZE , match, 0 ) ) {
-                int len =  match[0].rm_eo - match[0].rm_so + 1;
-                line = malloc( sizeof( chunk )  );
-                snprintf( line, sizeof( chunk ), "%.*s", len, chunk + match[0].rm_so );
-                parse_keys( chunk, match[0].rm_so, match[0].rm_eo );
-            }
+        if ( event == 1 ) {
+            parse_keys( chunk, &parse );
+            move_keys( chunk, parse.start, parse.end );
         }
 
         if( strstr( chunk, "not found" ) != NULL || strstr( chunk, "not recognized" ) != NULL ) {
@@ -63,7 +67,6 @@ void yaml_dry_run( const char *event, const char *path ) {
 
     }
 
-    regfree( &regX );
     pclose( file );
 
 }
