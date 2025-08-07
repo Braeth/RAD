@@ -12,7 +12,7 @@ int enable_virtual_processing() {
     #ifdef _WIN32
         HANDLE hOutput = GetStdHandle( STD_OUTPUT_HANDLE );
         DWORD dwMode;
-
+        SetConsoleOutputCP( CP_UTF8 );
         GetConsoleMode( hOutput, &dwMode );
         dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 
