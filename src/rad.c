@@ -29,7 +29,7 @@ void memory_alloc_cleanup( int size, char **target ) {
     free( target );
 }
 
-int * count_digit( int level ) {
+int count_digit( int level ) {
 
     int pad = 0;
     if ( level > 9 ) {
@@ -42,7 +42,7 @@ int * count_digit( int level ) {
     return pad;
 }
 
-int * long_row( int last_line, char **lines, int size ) {
+int long_row( int last_line, char **lines, int size ) {
     size_t len;
     char *curr = malloc( 1024 * sizeof( char ) );
     if ( !curr ) { ErrorExit( mem_err_alloc_message ); }
@@ -173,7 +173,7 @@ int parse( FILE *file, yaml_parser_t *parser, int non_args_count, char *fn ) {
     yaml_event_t event;
     yaml_event_type_t event_type;
 
-    char *chunk[ 1084 ];
+    char chunk[ 1084 ];
     int currentline = 0;
 
     do {
@@ -272,10 +272,10 @@ scan_line:
     } else {
         fprintf(stderr, COLOR_RED "Error from <%s>: %s\n", truncate_fn( fn, true, strlen ( fn ) ), parser->problem);
     }
-    fprintf(stderr, "Line: %d at column: %lu\n" COLOR_RESET , parser->problem_mark.line, parser->problem_mark.column + 1);
+    fprintf(stderr, "Line: %zu at column: %lu\n" COLOR_RESET , parser->problem_mark.line, parser->problem_mark.column + 1);
 
     if(!has_root) {
-        printf("\n%d| %s", ( parser->problem_mark.line ), err_line);
+        printf("\n%zu| %s", ( parser->problem_mark.line ), err_line);
     } else {
 
         draw_lines( last_line, segment, row_height );
@@ -287,11 +287,11 @@ scan_line:
                 remove_newline( upper_bound[j] );
                 int digit = count_digit( parser->problem_mark.line - i );
                 if ( last_line == digit ) {
-                    printf("%d| %s", (parser->problem_mark.line - i), upper_bound[j]);
+                    printf("%zu| %s", (parser->problem_mark.line - i), upper_bound[j]);
                 } else if ( last_line == 2 && digit == 0 ) {
-                    printf("%s%d| %s", indent( last_line - ( digit + 1 ) ), (parser->problem_mark.line - i), upper_bound[j]);
+                    printf("%s%zu| %s", indent( last_line - ( digit + 1 ) ), (parser->problem_mark.line - i), upper_bound[j]);
                 } else {
-                    printf("%s%d| %s", indent( last_line - digit ), (parser->problem_mark.line - i), upper_bound[j]);
+                    printf("%s%zu| %s", indent( last_line - digit ), (parser->problem_mark.line - i), upper_bound[j]);
                 }
                 draw_lock( total_indentation - strlen( upper_bound[j] ) - last_line - 2 );
                 printf("|\n");
@@ -303,11 +303,11 @@ scan_line:
         int problem_mark = count_digit( parser->problem_mark.line );
         remove_newline( err_line );
         if ( last_line == problem_mark ) {
-            printf( COLOR_RED "%d| %s" , ( parser->problem_mark.line ), err_line);
+            printf( COLOR_RED "%zu| %s" , ( parser->problem_mark.line ), err_line);
         }  else if ( last_line == 2 && problem_mark == 0 ) {
-            printf( COLOR_RED "%s%d| %s" , indent( last_line - ( problem_mark + 1 ) ), (parser->problem_mark.line), err_line);
+            printf( COLOR_RED "%s%zu| %s" , indent( last_line - ( problem_mark + 1 ) ), (parser->problem_mark.line), err_line);
         } else {
-            printf( COLOR_RED "%s%d| %s", indent( last_line - problem_mark ), (parser->problem_mark.line), err_line);
+            printf( COLOR_RED "%s%zu| %s", indent( last_line - problem_mark ), (parser->problem_mark.line), err_line);
         }
         draw_lock( total_indentation - strlen( err_line ) - last_line - 2 );
         printf("|\n" COLOR_RESET );
@@ -326,11 +326,11 @@ scan_line:
                 remove_newline( lower_bound[j] );
                 int digit = count_digit( parser->problem_mark.line + i );
                 if ( last_line == digit ) {
-                    printf("%d| %s", (parser->problem_mark.line + i), lower_bound[j]);
+                    printf("%zu| %s", (parser->problem_mark.line + i), lower_bound[j]);
                 } else if ( last_line == 2 && digit == 0 ) {
-                    printf("%s%d| %s", indent( last_line - ( digit + 1) ), (parser->problem_mark.line + i), lower_bound[j]);
+                    printf("%s%zu| %s", indent( last_line - ( digit + 1) ), (parser->problem_mark.line + i), lower_bound[j]);
                 } else {
-                    printf("%s%d| %s", indent( last_line - digit ), (parser->problem_mark.line + i), lower_bound[j]);
+                    printf("%s%zu| %s", indent( last_line - digit ), (parser->problem_mark.line + i), lower_bound[j]);
                 }
                 draw_lock( total_indentation - strlen( lower_bound[j] ) - last_line - 2 );
                 printf("|\n");

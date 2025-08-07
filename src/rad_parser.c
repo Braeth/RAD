@@ -11,11 +11,11 @@
 
 void move_keys( char *chunk, int start, int end ) {
 
-    memmove(chunk + end + strlen( (int) COLOR_RESET ), chunk + end, strlen( chunk + end ) + 1);
-    memcpy(chunk + end , COLOR_RESET, strlen( (int) COLOR_RESET ));
+    memmove(chunk + end + strlen( COLOR_RESET ), chunk + end, strlen( chunk + end ) + 1);
+    memcpy(chunk + end , COLOR_RESET, strlen( COLOR_RESET ));
 
-    memmove(chunk + start + strlen( (int) COLOR_CYAN  ), chunk + start, strlen( chunk + start ) + 1);
-    memcpy(chunk + start, COLOR_CYAN, strlen( (int) COLOR_CYAN  ));
+    memmove(chunk + start + strlen( COLOR_CYAN  ), chunk + start, strlen( chunk + start ) + 1);
+    memcpy(chunk + start, COLOR_CYAN, strlen( COLOR_CYAN  ));
 
 }
 
@@ -36,7 +36,7 @@ void parse_keys( char *chunk , rad_parse *parse ) {
 
 }
 
-void yaml_dry_run( const char *event, const char *path ) {
+void yaml_dry_run( const char event, const char *path ) {
     rad_parse parse;
     FILE *file;
     char buffer[ BUFFER_SIZE ];
