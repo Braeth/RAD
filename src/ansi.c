@@ -17,10 +17,9 @@ int enable_virtual_processing() {
         dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 
         if (!SetConsoleMode(hOutput, dwMode)) {
-            return 0;
-        } else {
             return 1;
         }
-    #endif
 
+    #endif
+    return 0;
 }

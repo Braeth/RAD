@@ -1,20 +1,37 @@
 cmake_minimum_required(VERSION 3.22)
 
+
+if(WIN32 AND MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 project(rad C)
 
-include(FetchContent)
+if(WIN32)
+    set(YAML_LIB_REF yaml.lib)
+else()
+    set(YAML_LIB_REF libyaml.a)
+endif()
 
+add_library(yaml STATIC IMPORTED)
 
-FetchContent_Declare(libyaml
-	GIT_REPOSITORY https://github.com/yaml/libyaml.git
-	GIT_TAG 0.2.5
+set_target_properties(yaml PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/libyaml/${YAML_LIB_REF}"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/lib/libyaml/include"
 )
 
-message("Downloading and installing required dependencies...")
-FetchContent_MakeAvailable(libyaml)
+if(WIN32)
+    target_compile_definitions(yaml INTERFACE YAML_DECLARE_STATIC)
+endif()
 
 
-include_directories(includes)
+if(WIN32)
+    add_library(wingetopt STATIC IMPORTED)
+    set_target_properties(wingetopt PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/wingetopt/wingetopt.lib"
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/lib/wingetopt/include"
+    )
+endif()
 
 set(RAD_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/rad.c
@@ -25,8 +42,19 @@ set(RAD_SOURCE
 
 add_executable(rad ${RAD_SOURCE})
 
-target_link_libraries(rad yaml)
+target_include_directories(rad PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/includes)
 
-target_link_options(rad PRIVATE -static)
+target_link_libraries(rad PRIVATE yaml)
+
+if(WIN32)
+    target_link_libraries(rad PRIVATE wingetopt)
+    target_compile_definitions(rad PRIVATE
+        _CRT_SECURE_NO_WARNINGS
+        _CRT_NONSTDC_NO_DEPRECATE
+        popen=_popen
+        pclose=_pclose
+    )
+endif()
+
 
 message("Done!!!")

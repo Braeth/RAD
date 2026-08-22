@@ -8,6 +8,12 @@
 #include <sys/stat.h>
 #include <yaml.h>
 
+#ifdef _WIN32
+    #ifndef S_ISREG
+        #define S_ISREG(mode) (((mode) & _S_IFMT) == _S_IFREG)
+    #endif
+#endif
+
 #define MAX_FN_LEN 256
 #define FN_THRESHOLD 20
 #define MAX_CHUNK_FILE 4096
@@ -16,6 +22,79 @@
 #define STRVAL(x) ((x) ? (char*)(x) : "")
 
 const char *mem_err_alloc_message = "Error: This software needs enough memory space to work properly...";
+
+typedef struct KeyNode {
+    char *key;
+    int line;
+    struct KeyNode *next;
+} KeyNode;
+
+
+typedef struct KeyStack {
+    KeyNode *keys;
+    struct KeyStack *next;
+} KeyStack;
+
+
+typedef struct {
+    KeyNode *head;
+    KeyNode *tail;
+} KeyList;
+
+KeyStack *push_stack(KeyStack *top) {
+    KeyStack *new_top = malloc(sizeof(KeyStack));
+    new_top->keys = NULL;
+    new_top->next = top;
+    return new_top;
+}
+
+KeyStack *pop_stack(KeyStack *top) {
+    if (!top) return NULL;
+    KeyNode *k = top->keys;
+    while (k) {
+        KeyNode *tmp = k;
+        k = k->next;
+        free(tmp->key);
+        free(tmp);
+    }
+    KeyStack *next = top->next;
+    free(top);
+    return next;
+}
+
+int key_exists(KeyStack *top, const char *key) {
+    if (!top) return 0;
+    KeyNode *k = top->keys;
+    while (k) {
+        if (strcmp(k->key, key) == 0) return 1;
+        k = k->next;
+    }
+    return 0;
+}
+
+void insert_key(KeyStack *top, const char *key) {
+    if (!top) return;
+    KeyNode *new_key = malloc(sizeof(KeyNode));
+    new_key->key = strdup(key);
+    new_key->next = top->keys;
+    top->keys = new_key;
+}
+
+void insert_node(KeyList *list, const char *key, int line) {
+    KeyNode *new_node = malloc(sizeof(KeyNode));
+    new_node->key = strdup(key);
+    new_node->line = line;
+    new_node->next = NULL;
+
+    if (list->tail == NULL) {
+        list->head = new_node;
+        list->tail = new_node;
+    } else {
+        list->tail->next = new_node;
+        list->tail = new_node;
+    }
+}
+
 
 void ErrorExit(const char *err_message) {
     puts( err_message );
@@ -130,14 +209,16 @@ void remove_newline( char * line ) {
 }
 
 char * truncate_fn( char *fn, bool rtl, int len) {
-    size_t total_char = strlen( fn );
-
+    size_t total_char = strlen( fn ) + 1;
+    char * ch_buff = malloc( total_char );
+    if (ch_buff == NULL) return NULL;
+    snprintf(ch_buff, total_char, "%s", fn);
     if ( !rtl ) {
-    	if( len < total_char ) fn[len] = '\0';
-    	return fn;
+    	if( len < total_char ) ch_buff[len] = '\0';
+    	return ch_buff;
     }
 
-    return ( (total_char >= len) ? ( fn + total_char - len ) : fn );
+    return ( (total_char >= len) ? ( ch_buff + total_char - len ) : ch_buff );
 
 }
 
@@ -174,19 +255,91 @@ int parse( FILE *file, yaml_parser_t *parser, int non_args_count, char *fn ) {
     yaml_event_type_t event_type;
 
     char chunk[ 1084 ];
-    int currentline = 0;
+    int currentline = 0, keys_duplicate = 0;
+
+    KeyStack *stack = NULL;
+    KeyList list = { NULL, NULL };
+
+    int parsing_key = 1;
+
 
     do {
         if ( !yaml_parser_parse( parser, &event ) ) {
             goto scan_line;
         }
         event_type = event.type;
+        switch ( event_type ) {
+
+            case YAML_MAPPING_START_EVENT:
+                stack = push_stack(stack);
+                parsing_key = 1;
+                break;
+
+            case YAML_MAPPING_END_EVENT:
+                stack = pop_stack(stack);
+                parsing_key = 1;
+                break;
+
+            case YAML_SCALAR_EVENT:
+                if (!stack) break;
+                if (parsing_key) {
+                    char *key = (char *)event.data.scalar.value;
+                    if (key_exists(stack, key)) {
+                        insert_node(&list, key, ( int ) event.start_mark.line + 1);
+                    } else {
+                        insert_key(stack, key);
+                    }
+                    parsing_key = 0;
+                } else {
+                    parsing_key = 1;
+                }
+
+                break;
+
+            default:
+                break;
+        }
+
         yaml_event_delete(&event);
     } while ( event_type != YAML_STREAM_END_EVENT );
 
+    KeyNode *n = list.head;
+
+    if ( n ) {
+        keys_duplicate = 1;
+        if ( strlen ( fn ) >= 15 ) {
+            fprintf(stderr, COLOR_RED "Error from <%s...%s>: %s\n", truncate_fn( fn, false, 20), truncate_fn( fn, true, 15), "Found duplicate keys!");
+        } else {
+            fprintf(stderr, COLOR_RED "Error from <%s>: %s\n", truncate_fn( fn, true, strlen ( fn ) ), "Found duplicate keys!");
+        }
+        
+        int pad = count_digit(list.tail->line);
+        printf("Line%s|Key\n",indent( pad ));
+        
+        while( n ) {
+            KeyNode *curr_node = n;
+            int curr_pad = count_digit(curr_node->line);
+            
+            int digit_cnt = count_digit(curr_node->line);
+            printf("%s%d|", indent( 4 + ( pad - ((digit_cnt == 0 ) ? 1 : digit_cnt )) ), curr_node->line );
+
+
+            for (int i = 0; i < curr_pad; i++ ) {
+                printf(".");
+            }
+            printf("%s", curr_node->key);
+            printf("\n"); 
+            
+            n = n->next;
+            
+            free(curr_node->key);
+            free(curr_node);
+        }
+    }
+
     yaml_parser_delete(parser);
     fclose( file );
-    return strlen( fn );
+    return  (keys_duplicate == 1) ? 0 : strlen( fn );
 
 scan_line:
     rewind( file );
@@ -350,7 +503,7 @@ scan_line:
     memory_alloc_cleanup( row_height, segment );
     free( err_line );
     fclose( file );
-
+    return -1;
 }
 
 void err_files_mem( int ctr, char *file, char **invalid_files ) {
@@ -415,7 +568,6 @@ main( int argc, char *argv[ ] ) {
             if ( res > 0 && args.dry_run ) {
                 yaml_dry_run( args.colorized , args.files[ i ] );
             }
-
 
 
         } else {
