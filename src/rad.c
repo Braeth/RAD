@@ -312,16 +312,19 @@ int parse( FILE *file, yaml_parser_t *parser, int non_args_count, char *fn ) {
         } else {
             fprintf(stderr, COLOR_RED "Error from <%s>: %s\n", truncate_fn( fn, true, strlen ( fn ) ), "Found duplicate keys!");
         }
+        printf("\n" COLOR_RESET );
         
         int pad = count_digit(list.tail->line);
-        printf("Line%s|Key\n",indent( pad ));
+        printf(COLOR_CYAN "Line%s|Key\n" COLOR_RESET ,indent( pad ));
         
         while( n ) {
             KeyNode *curr_node = n;
             int curr_pad = count_digit(curr_node->line);
             
             int digit_cnt = count_digit(curr_node->line);
-            printf("%s%d|", indent( 4 + ( pad - ((digit_cnt == 0 ) ? 1 : digit_cnt )) ), curr_node->line );
+            printf("%s", indent( 4 + ( pad - ((digit_cnt == 0 ) ? 1 : digit_cnt )) ) );
+            printf("%d", curr_node->line);
+            printf( COLOR_CYAN "|" COLOR_RESET);
 
 
             for (int i = 0; i < curr_pad; i++ ) {
@@ -335,6 +338,8 @@ int parse( FILE *file, yaml_parser_t *parser, int non_args_count, char *fn ) {
             free(curr_node->key);
             free(curr_node);
         }
+
+        printf("\n" COLOR_RESET );
     }
 
     yaml_parser_delete(parser);
