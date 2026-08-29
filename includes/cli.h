@@ -10,7 +10,7 @@ typedef struct {
 } argument_p;
 
 #define PROGRAM "rad"
-#define VERSION "RAD 0.1.0"
+#define VERSION "RAD 2026.08.29"
 #define DESC "Validate your Global Policy yaml files with EASE!"
 #define CREATOR "Made by SQ1"
 
