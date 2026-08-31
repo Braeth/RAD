@@ -1,0 +1,231 @@
+name: Build Pipeline
+
+on:
+  release:
+    types:
+    - published
+
+permissions:
+  contents: write
+
+jobs:
+
+  linux-x86_64:
+    name: Build Linux x86_64
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout RAD
+      uses: actions/checkout@v4
+
+    - name: Clone libyaml dependency
+      run: git clone https://github.com/yaml/libyaml.git ../libyaml
+
+    - name: Build Tools Version Check
+      run: |
+        cmake --version
+        ninja --version
+        gcc --version
+
+    - name: Configure libyaml
+      run: cmake -S ../libyaml -B ../libyaml/build -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build libyaml
+      run: cmake --build ../libyaml/build
+
+    - name: Copy dependency
+      run: |
+        mkdir -p lib/libyaml/include
+        cp ../libyaml/include/yaml.h lib/libyaml/include/
+        cp ../libyaml/build/libyaml.a lib/libyaml/
+
+    - name: Configure CMake Preset
+      run: cmake --preset linux-x86_64
+
+    - name: Build
+      run: cmake --build --preset linux-x86_64
+
+    - name: Prepare artifact
+      run: |
+        mkdir -p artifacts
+        cp build/linux-x86_64/rad artifacts/rad
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-x86_64
+        path: artifacts/rad
+
+  mac:
+    name: macOS
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout RAD
+      uses: actions/checkout@v4
+
+    - name: Clone libyaml dependency
+      run: git clone https://github.com/yaml/libyaml.git ../libyaml
+
+    - name: Build Tools Version Check
+      run: |
+        cmake --version
+        ninja --version
+        clang --version
+
+    - name: Configure libyaml
+      run: cmake -S ../libyaml -B ../libyaml/build -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+
+    - name: Build libyaml
+      run: cmake --build ../libyaml/build
+
+    - name: Copy dependency
+      run: |
+        mkdir -p lib/libyaml/include
+        cp ../libyaml/include/yaml.h lib/libyaml/include/
+        cp ../libyaml/build/libyaml.a lib/libyaml/
+
+    - name: Configure CMake Preset
+      run: cmake --preset mac
+
+    - name: Build
+      run: cmake --build --preset mac
+
+    - name: Prepare artifact
+      run: |
+        mkdir -p artifacts
+        cp build/mac/rad artifacts/rad
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos
+        path: artifacts/rad
+
+  win-x86_64:
+    name: Windows x86_64
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout RAD
+      uses: actions/checkout@v4
+
+    - name: Clone libyaml dependency
+      run: git clone https://github.com/yaml/libyaml.git ../libyaml
+
+    - name: Clone wingetopt dependency
+      run: git clone https://github.com/alex85k/wingetopt.git ../wingetopt
+
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    - name: Build Tools Version Check
+      run: |
+        cmake --version
+        ninja --version
+        cl
+
+    - name: Configure libyaml
+      run: cmake -S ../libyaml -B ../libyaml/build -DBUILD_SHARED_LIBS=OFF
+
+    - name: Build libyaml
+      run: cmake --build ../libyaml/build --config Release
+
+    - name: Configure wingetopt
+      run: cmake -S ../wingetopt -B ../wingetopt/build
+
+    - name: Build wingetopt
+      run: cmake --build ../wingetopt/build --config Release
+
+    - name: Copy dependency
+      shell: bash
+      run: |
+        mkdir -p lib/libyaml/include lib/wingetopt/include
+        cp ../libyaml/include/yaml.h lib/libyaml/include/
+        cp ../libyaml/build/Release/yaml.lib lib/libyaml/
+        cp ../wingetopt/src/getopt.h lib/wingetopt/include/
+        cp ../wingetopt/build/Release/wingetopt.lib lib/wingetopt/
+
+    - name: Configure CMake Preset
+      run: cmake --preset win-x86_64
+
+    - name: Build
+      run: cmake --build --preset win-x86_64
+
+    - name: Prepare artifact
+      shell: bash
+      run: |
+        mkdir -p artifacts
+        cp build/win-x86_64/rad.exe artifacts/rad-win-x86_64.exe
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: rad-win-x86_64
+        path: artifacts/rad-win-x86_64.exe
+
+  win-arm64:
+    name: Windows ARM64
+    runs-on: windows-11-arm
+
+    steps:
+    - name: Checkout RAD
+      uses: actions/checkout@v4
+
+    - name: Clone libyaml dependency
+      run: git clone https://github.com/yaml/libyaml.git ../libyaml
+
+    - name: Clone wingetopt dependency
+      run: git clone https://github.com/alex85k/wingetopt.git ../wingetopt
+
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: arm64
+
+    - name: Build Tools Version Check
+      run: |
+        cmake --version
+        ninja --version
+        cl
+
+    - name: Configure libyaml
+      run: cmake -S ../libyaml -B ../libyaml/build -DBUILD_SHARED_LIBS=OFF
+
+    - name: Build libyaml
+      run: cmake --build ../libyaml/build --config Release
+
+    - name: Configure wingetopt
+      run: cmake -S ../wingetopt -B ../wingetopt/build
+
+    - name: Build wingetopt
+      run: cmake --build ../wingetopt/build --config Release
+
+    - name: Copy dependency
+      shell: bash
+      run: |
+        mkdir -p lib/libyaml/include lib/wingetopt/include
+        cp ../libyaml/include/yaml.h lib/libyaml/include/
+        cp ../libyaml/build/Release/yaml.lib lib/libyaml/
+        cp ../wingetopt/src/getopt.h lib/wingetopt/include/
+        cp ../wingetopt/build/Release/wingetopt.lib lib/wingetopt/
+
+    - name: Configure CMake Preset
+      run: cmake --preset win-arm64
+
+    - name: Build
+      run: cmake --build --preset win-arm64
+
+    - name: Prepare artifact
+      shell: bash
+      run: |
+        mkdir -p artifacts
+        cp build/win-arm64/rad.exe artifacts/rad-win-arm64.exe
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: rad-win-arm64
+        path: artifacts/rad-win-arm64.exe
