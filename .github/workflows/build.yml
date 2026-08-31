@@ -229,3 +229,35 @@ jobs:
       with:
         name: rad-win-arm64
         path: artifacts/rad-win-arm64.exe
+
+  release:
+    name: Finalized artifacts
+
+    needs:
+    - mac
+    - linux-x86_64
+    - win-x86_64
+    - win-arm64
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download mac binary
+      uses: actions/download-artifact@v4
+      with:
+        path: build
+        merge-multiple: true
+
+    - name: Log
+      run: |
+        find build -type f
+        echo "Repo: ${{ github.repository }}"
+        echo "Tag: ${{ github.event.release.tag_name }}"
+
+    - name: Upload assets
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_REPO: ${{ github.repository }}
+        TAG_NAME: ${{ github.event.release.tag_name }}
+      run: |
+        gh release upload "$TAG_NAME" build/* --clobber
