@@ -473,10 +473,10 @@ scan_line:
         int space = count_space( err_line );
         if ( last_line == 0 ) { printf( INDENT ); }
         printf("%s", indent( space + last_line + 2 ) );
-        for (int i = 1; i < ( strlen( err_line ) - space ); i++) {
+        for (int i = 0; i < ( strlen( err_line ) - space ); i++) {
             printf( COLOR_RED "~");
         }
-        printf("%s|\n" COLOR_RESET , indent ( total_indentation - strlen( err_line ) - last_line -1 ));
+        printf("%s|\n" COLOR_RESET , indent ( total_indentation - strlen( err_line ) - last_line -2 ));
 
         j = 0;
         for( int i = 1; i <= line_height; i++) {
