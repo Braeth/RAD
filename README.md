@@ -10,7 +10,7 @@
 
 Made by SQ1
 
-Ver: **RAD** 0.1.0
+Ver: **RAD** 2026.08.29
 
 Contributor / Maintainer: Brian **RAD**a
 
