@@ -48,13 +48,13 @@ jobs:
     - name: Prepare artifact
       run: |
         mkdir -p artifacts
-        cp build/linux-x86_64/rad artifacts/rad
+        cp build/linux-x86_64/rad artifacts/rad-linux-x86_64
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: linux-x86_64
-        path: artifacts/rad
+        path: artifacts/rad-linux-x86_64
 
   mac:
     name: macOS
@@ -94,13 +94,13 @@ jobs:
     - name: Prepare artifact
       run: |
         mkdir -p artifacts
-        cp build/mac/rad artifacts/rad
+        cp build/mac/rad artifacts/rad-macos
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: macos
-        path: artifacts/rad
+        path: artifacts/rad-macos
 
   win-x86_64:
     name: Windows x86_64
