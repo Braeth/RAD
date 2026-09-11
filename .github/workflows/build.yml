@@ -128,13 +128,13 @@ jobs:
         cl
 
     - name: Configure libyaml
-      run: cmake -S ../libyaml -B ../libyaml/build -DBUILD_SHARED_LIBS=OFF
+      run: cmake -S ../libyaml -B ../libyaml/build -DBUILD_SHARED_LIBS=OFF -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 
     - name: Build libyaml
       run: cmake --build ../libyaml/build --config Release
 
     - name: Configure wingetopt
-      run: cmake -S ../wingetopt -B ../wingetopt/build
+      run: cmake -S ../wingetopt -B ../wingetopt/build -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 
     - name: Build wingetopt
       run: cmake --build ../wingetopt/build --config Release
