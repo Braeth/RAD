@@ -129,7 +129,7 @@ INFO: SUCCESS! 3 files are VALID!
 > `rad` expect that `kubectl` must be added in your system's environment variable, if it's not set, you'll get this error message:
 
 ```shell
-$ rad ~/DevSpace/global/env/policy.yml
+$ rad ~/DevSpace/global/env/policy.yml -d
 
 rad: kubectl was not installed. Please configure your environment variable.
 ```
@@ -165,9 +165,17 @@ If you want to add color simply add `-c` arguments in the command like so:
 
 ![dry-run with -c flag](./docs/images/dry-run--c.png)
 
-Just a sidenote, you can also pass arguments like this `-d -c` or `-c -d` 
+Just a sidenote, you can also pass arguments like this `-d -c` , `-dc` 
+, `-c -d` or `-cd`
+
+
+
+
+
 
 Thanks!
+
+
 Brian
 
 
