@@ -21,7 +21,9 @@ Contributor / Maintainer: Brian **RAD**a
 **colorized yaml + 1** ✅
 
 ### Installation
-#macOS
+[![macOS](https://img.shields.io/badge/Mac-OS?style=for-the-badge&color=orange)]()
+
+
 install using cask
 ```shell
 brew trust Braeth/rad  && brew tap Braeth/rad && brew install --cask rad
@@ -29,8 +31,15 @@ brew trust Braeth/rad  && brew tap Braeth/rad && brew install --cask rad
 after the installation, you'll see a message that you must run this command:
 ```shell
 xattr -d com.apple.quarantine /<YOUR HOMEBREW PREFIX>/bin/rad
-```
-#windows
+```   
+
+
+
+
+
+[![Windows](https://img.shields.io/badge/Windows-X64?style=for-the-badge&label=x86_64&color=blue)]()
+
+
 Download the latest binary(.exe) under releases page.
 
 For easy reference to the binary, add it to your environment variables.
@@ -167,6 +176,10 @@ If you want to add color simply add `-c` arguments in the command like so:
 
 Just a sidenote, you can also pass arguments like this `-d -c` , `-dc` 
 , `-c -d` or `-cd`
+
+
+
+
 
 
 
