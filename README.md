@@ -40,9 +40,9 @@ xattr -d com.apple.quarantine /<YOUR HOMEBREW PREFIX>/bin/rad
 [![Windows](https://img.shields.io/badge/Windows-X64?style=for-the-badge&label=x86_64&color=blue)]()
 
 
-Download the latest binary(.exe) under releases page.
-
-For easy reference to the binary, add it to your environment variables.
+```shell
+winget install Brian.rad
+```
 
 ## About RAD
 
